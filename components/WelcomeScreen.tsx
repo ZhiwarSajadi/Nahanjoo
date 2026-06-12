@@ -71,7 +71,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onUpload, apiKeyError, fi
     };
 
     return (
-        <div className={`flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 relative ${isFarsi ? 'flex-row-reverse text-right' : ''}`}>
+        <div className={`flex flex-col items-center justify-center flex-1 p-4 sm:p-6 lg:p-8 relative ${isFarsi ? 'flex-row-reverse text-right' : ''}`}>
             <div className={`absolute top-4 ${isFarsi ? 'right-4' : 'left-4'} z-20`}>
                 {onBack && (
                     <button

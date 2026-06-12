@@ -146,7 +146,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterLabs, onOpenDashboard,
     };
 
     return (
-        <div className="relative w-full min-h-screen flex flex-col font-sans text-neutral-900 dark:text-white antialiased overflow-hidden selection:bg-[#EAECE9] selection:text-[#1C2E1E] dark:selection:bg-[#1C2E1E] dark:selection:text-[#EAECE9]">
+        <div className="relative w-full flex-1 flex flex-col font-sans text-neutral-900 dark:text-white antialiased selection:bg-[#EAECE9] selection:text-[#1C2E1E] dark:selection:bg-[#1C2E1E] dark:selection:text-[#EAECE9]">
             {/* Background Video Component - Fixed at the very back */}
             <div className="fixed inset-0 -z-10 pointer-events-none bg-white/50 dark:bg-neutral-900/50">
                 <div className="absolute inset-0 z-10 bg-white/85 dark:bg-neutral-900/90 transition-colors duration-300" />

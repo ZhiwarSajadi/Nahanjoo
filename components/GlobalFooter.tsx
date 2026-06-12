@@ -12,7 +12,7 @@ const GlobalFooter: React.FC<GlobalFooterProps> = ({ uiLanguage = 'english' }) =
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 1 }}
-            className="w-full py-4 px-6 text-center text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 select-none bg-transparent relative z-40 mt-auto"
+            className="w-full py-4 px-6 text-center text-xs sm:text-sm text-neutral-500 dark:text-neutral-400 select-none bg-transparent mt-auto"
         >
             <div className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-4 opacity-80 hover:opacity-100 transition-opacity ${isFarsi ? 'flex-row-reverse' : ''}`}>
                 <span>{isFarsi ? 'پشتیبانی شده توسط ' : 'Powered by '}<strong className="text-neutral-700 dark:text-neutral-300 font-semibold tracking-wide">Google Gemini & Google AI Studio</strong></span>

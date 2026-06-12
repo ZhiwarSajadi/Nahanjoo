@@ -204,7 +204,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onBack, uiLanguage,
     };
 
   return (
-    <div className={`min-h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 ${isFarsi ? 'rtl' : 'ltr'}`}>
+    <div className={`flex-1 flex flex-col bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 ${isFarsi ? 'rtl' : 'ltr'}`}>
       {/* Header */}
       <header className={`px-6 py-4 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sticky top-0 z-10 shadow-sm`}>
         <div className="flex items-center gap-4">

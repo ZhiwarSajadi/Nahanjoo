@@ -309,7 +309,7 @@ const App: React.FC = () => {
         switch(status) {
             case AppStatus.Initializing:
                 return (
-                    <div className={`flex items-center justify-center h-screen ${uiLanguage === 'persian' ? 'rtl flex-row-reverse' : ''}`}>
+                    <div className={`flex-1 flex items-center justify-center ${uiLanguage === 'persian' ? 'rtl flex-row-reverse' : ''}`}>
                         <Spinner /> <span className={`text-xl ${uiLanguage === 'persian' ? 'mr-4' : 'ml-4'}`}>{uiLanguage === 'persian' ? 'در حال راه‌اندازی...' : 'Initializing...'}</span>
                     </div>
                 );
@@ -345,7 +345,7 @@ const App: React.FC = () => {
                 />;
             case AppStatus.Error:
                  return (
-                    <div className={`flex flex-col items-center justify-center h-screen bg-red-900/20 text-red-700 dark:text-red-300 ${uiLanguage === 'persian' ? 'rtl text-right' : ''}`}>
+                    <div className={`flex-1 flex flex-col items-center justify-center bg-red-900/20 text-red-700 dark:text-red-300 ${uiLanguage === 'persian' ? 'rtl text-right' : ''}`}>
                         <h1 className="text-3xl font-bold mb-4">{uiLanguage === 'persian' ? 'خطای برنامه' : 'Application Error'}</h1>
                         <p className="max-w-md text-center mb-4" dir="ltr">{error}</p>
                         <button onClick={clearError} className="px-4 py-2 rounded-md bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors" title={uiLanguage === 'persian' ? 'بازگشت به صفحه خوش‌آمدگویی' : 'Return to the welcome screen'}>
@@ -359,8 +359,8 @@ const App: React.FC = () => {
     }
 
     return (
-        <div className="font-sans antialiased text-neutral-900 dark:text-white min-h-screen flex flex-col">
-            <div className="flex-grow flex flex-col">
+        <div className="font-sans antialiased text-neutral-900 dark:text-white h-[100dvh] flex flex-col overflow-hidden">
+            <div className="flex-grow flex flex-col overflow-y-auto">
                 {currentView === 'hero' ? (
                     <HeroSection 
                         onEnterLabs={() => setCurrentView('rag')}
@@ -375,11 +375,11 @@ const App: React.FC = () => {
                         toggleUiLanguage={toggleUiLanguage}
                     />
                 ) : currentView === 'dashboard' && user ? (
-                    <div className="flex-grow flex flex-col bg-neutral-50 dark:bg-neutral-900 relative selection:bg-neutral-200 selection:text-neutral-900 dark:selection:bg-neutral-700 dark:selection:text-neutral-100">
+                    <div className="flex-grow flex flex-col bg-neutral-50 dark:bg-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 dark:selection:bg-neutral-700 dark:selection:text-neutral-100">
                         <UserDashboard user={user} onBack={() => setCurrentView('hero')} uiLanguage={uiLanguage} logout={() => { logout(); setCurrentView('hero'); }} />
                     </div>
                 ) : (
-                    <div className="flex-grow flex flex-col bg-neutral-50 dark:bg-neutral-900 bg-opacity-100 text-neutral-900 dark:text-neutral-100 relative selection:bg-neutral-200 selection:text-neutral-900 dark:selection:bg-neutral-700 dark:selection:text-neutral-100">
+                    <div className="flex-grow flex flex-col bg-neutral-50 dark:bg-neutral-900 bg-opacity-100 text-neutral-900 dark:text-neutral-100 selection:bg-neutral-200 selection:text-neutral-900 dark:selection:bg-neutral-700 dark:selection:text-neutral-100">
                         {renderContent()}
                     </div>
                 )}

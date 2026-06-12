@@ -471,7 +471,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }, [history, isQueryLoading]);
 
     return (
-        <div className="flex flex-col h-screen relative bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 font-sans overflow-hidden">
+        <div className="flex flex-col flex-1 relative bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 font-sans overflow-hidden">
             
             {/* Unified Top Navigation Header */}
             <header className="h-16 px-4 border-b border-neutral-300 dark:border-neutral-700/40 bg-neutral-50 dark:bg-neutral-900/85 backdrop-blur-md flex justify-between items-center z-30 font-sans">
