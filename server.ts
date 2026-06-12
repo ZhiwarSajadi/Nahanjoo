@@ -3,7 +3,6 @@ import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 
 const isVercel = process.env.VERCEL === '1';
 const uploadDir = isVercel ? '/tmp/uploads/' : 'uploads/';
@@ -18,12 +17,24 @@ export const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const aiAny = ai as any;
+let ai: GoogleGenAI | null = null;
+let aiAny: any = null;
+
+function getAi() {
+    if (!ai) {
+        if (!process.env.GEMINI_API_KEY) {
+            throw new Error("GEMINI_API_KEY environment variable is not set. Please configure it in Vercel.");
+        }
+        ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        aiAny = ai as any;
+    }
+    return { ai, aiAny };
+}
 
     // Endpoint to create RAG store
     app.post('/api/rag/create', async (req, res) => {
         try {
+            const { aiAny } = getAi();
             const { displayName } = req.body;
             const ragStore = await aiAny.fileSearchStores.create({ config: { displayName } });
             res.json({ name: ragStore.name });
@@ -36,6 +47,7 @@ const aiAny = ai as any;
     // Endpoint to upload file
     app.post('/api/rag/upload', upload.single('file'), async (req, res) => {
         try {
+            const { aiAny } = getAi();
             const { ragStoreName } = req.body;
             if (!req.file || !ragStoreName) {
                 if (req.file?.path) fs.unlinkSync(req.file.path);
@@ -63,6 +75,7 @@ const aiAny = ai as any;
     // Endpoint to check operation
     app.post('/api/rag/check-operation', async (req, res) => {
         try {
+            const { aiAny } = getAi();
             const { operation } = req.body;
             let op = await aiAny.operations.get({ operation: operation });
             res.json({ success: true, operation: op });
@@ -74,6 +87,7 @@ const aiAny = ai as any;
     // Endpoint to chat
     app.post('/api/rag/search', async (req, res) => {
         try {
+            const { ai } = getAi();
             const { ragStoreName, query } = req.body;
             const response = await ai.models.generateContent({
                 model: 'gemini-3.1-flash-lite',
@@ -92,6 +106,7 @@ const aiAny = ai as any;
     // Endpoint to generate example questions
     app.post('/api/rag/questions', async (req, res) => {
         try {
+            const { ai } = getAi();
             const { ragStoreName, language } = req.body;
             const response = await ai.models.generateContent({
                 model: 'gemini-3.1-flash-lite',
@@ -138,6 +153,7 @@ const aiAny = ai as any;
     // Endpoint to analyze document
     app.post('/api/rag/analyze', async (req, res) => {
         try {
+            const { ai } = getAi();
             const { ragStoreName, language } = req.body;
             const response = await ai.models.generateContent({
                 model: 'gemini-3.1-flash-lite',
@@ -184,6 +200,7 @@ const aiAny = ai as any;
     // Endpoint to delete rag store
     app.post('/api/rag/delete', async (req, res) => {
         try {
+            const { aiAny } = getAi();
             const { ragStoreName } = req.body;
             await aiAny.fileSearchStores.delete({ name: ragStoreName, config: { force: true } });
             res.json({ success: true });
@@ -196,6 +213,8 @@ const aiAny = ai as any;
 if (!isVercel) {
     (async () => {
         if (process.env.NODE_ENV !== "production") {
+            const viteModule = 'vite';
+            const { createServer: createViteServer } = await import(viteModule);
             const vite = await createViteServer({
                 server: { middlewareMode: true },
                 appType: "spa",
