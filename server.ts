@@ -76,11 +76,22 @@ function getAi() {
     app.post('/api/rag/check-operation', async (req, res) => {
         try {
             const { aiAny } = getAi();
-            const { operation } = req.body;
-            let op = await aiAny.operations.get({ operation: { name: operation } });
-            res.json({ success: true, operation: op });
+            const { operation } = req.body; // string or object
+            const opName = typeof operation === 'string' ? operation : operation.name;
+            // Use the internal request method to avoid the SDK crash due to missing _fromAPIResponse method
+            const rawOperationRes = await aiAny.apiClient.request({
+                path: opName, // e.g. "operations/xxx"
+                httpMethod: 'GET',
+            });
+            const rawOperation = await rawOperationRes.json();
+            
+            if (rawOperation.error && rawOperation.error.code) {
+                  return res.status(rawOperation.error.code).json({ error: rawOperation.error.message || "API Error" });
+            }
+            
+            res.json({ success: true, operation: rawOperation });
         } catch (err: any) {
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ error: err.message, stack: err.stack });
         }
     });
 

@@ -73,7 +73,8 @@ export async function uploadToRagStore(ragStoreName: string, file: File): Promis
             body: JSON.stringify({ operation: op.name || op })
         });
         if (!checkRes.ok) {
-            throw new Error("Failed to check operation status");
+            let errorText = await checkRes.text().catch(() => 'Unknown error text');
+            throw new Error(`Failed to check operation status: ${checkRes.status} ${checkRes.statusText} - ${errorText}`);
         }
         const checkData = await checkRes.json();
         op = checkData.operation;
