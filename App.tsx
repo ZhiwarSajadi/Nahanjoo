@@ -16,6 +16,7 @@ import HeroSection from './components/HeroSection';
 import GlobalFooter from './components/GlobalFooter';
 import UserDashboard from './components/UserDashboard';
 import { logActivity, updateActivityLogAnalysisData } from './services/activityService';
+import { Analytics } from '@vercel/analytics/react';
 
 // DO: Define the AIStudio interface to resolve a type conflict where `window.aistudio` was being redeclared with an anonymous type.
 // FIX: Moved the AIStudio interface definition inside the `declare global` block to resolve a TypeScript type conflict.
@@ -385,6 +386,7 @@ const App: React.FC = () => {
                 )}
             </div>
             <GlobalFooter uiLanguage={uiLanguage} />
+            <Analytics />
         </div>
     );
 };
