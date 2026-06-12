@@ -77,7 +77,7 @@ function getAi() {
         try {
             const { aiAny } = getAi();
             const { operation } = req.body;
-            let op = await aiAny.operations.get({ operation: operation });
+            let op = await aiAny.operations.get({ operation: { name: operation } });
             res.json({ success: true, operation: op });
         } catch (err: any) {
             res.status(500).json({ error: err.message });
