@@ -5,9 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, DocumentAnalysis } from '../types';
 import Spinner from './Spinner';
-import SendIcon from './icons/SendIcon';
-import RefreshIcon from './icons/RefreshIcon';
-import { Sun, Moon, Download, ChevronDown, FileText, FileJson, Copy, Check, Volume2, VolumeX, Sparkles, Trash2, HelpCircle, ArrowLeft, UserCircle } from 'lucide-react';
+import { Sun, Moon, Download, ChevronDown, FileText, FileJson, Copy, Check, Volume2, VolumeX, Sparkles, Trash2, HelpCircle, ArrowLeft, UserCircle, Send as SendIcon, RefreshCw as RefreshIcon } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface ChatInterfaceProps {

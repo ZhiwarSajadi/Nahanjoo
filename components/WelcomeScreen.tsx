@@ -6,8 +6,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import Spinner from './Spinner';
-import { Sun, Moon, ArrowLeft, CloudUpload, FileText, UserCircle } from 'lucide-react';
-import TrashIcon from './icons/TrashIcon';
+import { Sun, Moon, ArrowLeft, CloudUpload, FileText, UserCircle, Trash2 as TrashIcon } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface WelcomeScreenProps {

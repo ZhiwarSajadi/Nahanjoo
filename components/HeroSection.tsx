@@ -114,9 +114,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterLabs, onOpenDashboard,
         if (window.innerWidth < 1024) {
             video.autoplay = true;
             video.loop = true;
-            video.play().catch(err => {
-                console.log('Autoplay playback initiated or handled:', err);
-            });
+            video.play().catch(() => {});
         }
     }, []);
 

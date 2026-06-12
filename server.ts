@@ -5,19 +5,21 @@ import fs from 'fs';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 
-const upload = multer({ dest: 'uploads/' });
+const isVercel = process.env.VERCEL === '1';
+const uploadDir = isVercel ? '/tmp/uploads/' : 'uploads/';
 
-if (!fs.existsSync('uploads/')) {
-    fs.mkdirSync('uploads/', { recursive: true });
+const upload = multer({ dest: uploadDir });
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-async function startServer() {
-    const app = express();
-    const PORT = process.env.PORT || 3000;
-    app.use(express.json());
+export const app = express();
+const PORT = process.env.PORT || 3000;
+app.use(express.json());
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const aiAny = ai as any;
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const aiAny = ai as any;
 
     // Endpoint to create RAG store
     app.post('/api/rag/create', async (req, res) => {
@@ -40,7 +42,6 @@ async function startServer() {
                 return res.status(400).json({ error: "Missing file or ragStoreName" });
             }
             
-            console.log("upload params:", req.file, ragStoreName);
             let op = await aiAny.fileSearchStores.uploadToFileSearchStore({
                 fileSearchStoreName: ragStoreName,
                 file: req.file.path,
@@ -196,24 +197,27 @@ async function startServer() {
         }
     });
 
-    // Vite middleware for development
-    if (process.env.NODE_ENV !== "production") {
-        const vite = await createViteServer({
-            server: { middlewareMode: true },
-            appType: "spa",
-        });
-        app.use(vite.middlewares);
-    } else {
-        const distPath = path.join(process.cwd(), 'dist');
-        app.use(express.static(distPath));
-        app.get('*', (req, res) => {
-            res.sendFile(path.join(distPath, 'index.html'));
-        });
-    }
+// Vite middleware for development
+if (!isVercel) {
+    (async () => {
+        if (process.env.NODE_ENV !== "production") {
+            const vite = await createViteServer({
+                server: { middlewareMode: true },
+                appType: "spa",
+            });
+            app.use(vite.middlewares);
+        } else {
+            const distPath = path.join(process.cwd(), 'dist');
+            app.use(express.static(distPath));
+            app.get('*', (req, res) => {
+                res.sendFile(path.join(distPath, 'index.html'));
+            });
+        }
 
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-    });
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+    })();
 }
 
-startServer();
+export default app;
