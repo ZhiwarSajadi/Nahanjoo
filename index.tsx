@@ -6,6 +6,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 
 window.addEventListener('error', (event) => {
   if (event.message?.includes('INTERNAL ASSERTION FAILED') || event.message?.includes('Pending promise was never set')) {
@@ -46,6 +47,9 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
+
+// Inject Speed Insights
+injectSpeedInsights();
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
