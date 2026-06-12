@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --gem-onyx: #f8fafc;
+  --gem-slate: #ffffff;
+  --gem-mist: #e2e8f0;
+  --gem-offwhite: #1e293b;
+  --gem-teal: #0d9488;
+  --gem-blue: #2563eb;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+:root.dark, body.dark {
+  --gem-onyx: #0f172a; /* Custom Slate-900 */
+  --gem-slate: #1e293b; /* Custom Slate-800 */
+  --gem-mist: #334155; /* Custom Slate-700 */
+  --gem-offwhite: #f1f5f9; /* Custom Slate-100 */
+  --gem-teal: #2dd4bf; /* Custom Teal-400 */
+  --gem-blue: #3b82f6; /* Custom Blue-500 */
+}
+
+/* Ensure smooth theme transitions */
+body, main, header, div, input, button {
+  transition-property: background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.animate-blink { animation: blink 1s step-end infinite; }
+
+/* Custom scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+

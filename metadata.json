@@ -1,0 +1,6 @@
+{
+  "name": "Nahanjoo",
+  "description": "Explore the power of FileSearch,the simplest integrated RAG solution. Just upload any text file, from product manuals to dense reports, and ask away. FileSearch takes care of the rest, instantly digging through the content to find the precise answers you need.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
