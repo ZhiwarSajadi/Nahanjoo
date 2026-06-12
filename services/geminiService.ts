@@ -60,6 +60,29 @@ export async function uploadToRagStore(ragStoreName: string, file: File): Promis
         } catch(e) {}
         throw new Error(`Failed to upload file: ${cleanMsg}`);
     }
+    
+    const data = await res.json();
+    let op = data.operation;
+    
+    let attempts = 0;
+    while (op && !op.done && attempts < 100) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const checkRes = await fetch('/api/rag/check-operation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ operation: op.name || op })
+        });
+        if (!checkRes.ok) {
+            throw new Error("Failed to check operation status");
+        }
+        const checkData = await checkRes.json();
+        op = checkData.operation;
+        attempts++;
+    }
+    
+    if (op && op.error) {
+        throw new Error(`Upload operation failed: ${op.error.message || 'Unknown error'}`);
+    }
 }
 
 export async function fileSearch(ragStoreName: string, query: string): Promise<QueryResult> {

@@ -51,28 +51,23 @@ const aiAny = ai as any;
                 }
             });
 
-            let attempts = 0;
-            const MAX_ATTEMPTS = 100; // 5 minutes max at 3s intervals
-
-            while (!op.done && attempts < MAX_ATTEMPTS) {
-                await new Promise((resolve) => setTimeout(resolve, 3000));
-                op = await aiAny.operations.get({ operation: op });
-                attempts++;
-            }
-
-            if (op.error) {
-                throw new Error(`Upload operation failed: ${op.error.message || 'Unknown error'}`);
-            }
-            if (!op.done) {
-                throw new Error('Upload operation timed out');
-            }
-
             fs.unlinkSync(req.file.path); // cleanup
-            res.json({ success: true, fileResult: op });
+            res.json({ success: true, fileResult: op, operation: op });
         } catch (err: any) {
             console.error("rag/upload error:", err);
             try { fs.unlinkSync(req.file?.path || ""); } catch { }
             res.status(500).json({ error: err.message, stack: err.stack });
+        }
+    });
+
+    // Endpoint to check operation
+    app.post('/api/rag/check-operation', async (req, res) => {
+        try {
+            const { operation } = req.body;
+            let op = await aiAny.operations.get({ operation: operation });
+            res.json({ success: true, operation: op });
+        } catch (err: any) {
+            res.status(500).json({ error: err.message });
         }
     });
 
