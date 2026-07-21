@@ -17,7 +17,7 @@
 
 > **دست‌یابی به پاسخ‌های دقیق و هوشمند از میان اسناد متنی فارسی — ۱۰۰٪ آفلاین، بدون نیاز به اینترنت و بدون ارسال داده‌ها به ابر**
 
-*Bachelor of Science (B.Sc.) Capstone Project — Computer Engineering / Information Technology*  
+*Bachelor of Computer Engineering Capstone Project — Computer Engineering / Information Technology*  
 *Azad University of Sanandaj*
 
 ---
@@ -308,7 +308,7 @@ This project is open-source and released under the **[MIT License](LICENSE)**.
 ## 🎓 Academic Metadata & Author Information
 
 **Project Title:** Nahanjoo App — Fully Offline Persian Local RAG Assistant  
-**Degree Program:** Bachelor of Science (B.Sc.) in Computer Engineering / Information Technology  
+**Degree Program:** Bachelor of Computer Engineering / Information Technology  
 **Institution:** Azad University of Sanandaj (دانشگاه آزاد اسلامی واحد سنندج)
 
 - **Author / Lead Developer:** **Zhiwar Sajadi (ژیوار سجادی)**  
