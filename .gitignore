@@ -1,0 +1,37 @@
+# Python cache and environment files
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.env
+
+# Ignore user data folders but keep directory structures via .gitkeep
+/Documents/*
+!/Documents/.gitkeep
+
+/Chats/*
+!/Chats/.gitkeep
+
+/VectorStore/*
+!/VectorStore/.gitkeep
+
+# Ignore large downloaded machine learning models
+/Models/*.gguf
+/Models/embedding/
+/Models/sentence-transformers/
+/Models/fonts/
+
+# Ignore the portable embedded Python runtime (built by build_usb_portable.py)
+# This directory contains hundreds of MB of binary DLLs and packages — never commit
+/python_embed/
+
+# Transient build/download artifacts
+get-pip.py
+
+# Stray development/test config files in the root
+test_config.json
+
+# Windows / Editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
