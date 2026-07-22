@@ -39,11 +39,12 @@ Nahanjoo solves these challenges by integrating a specialized **Persian Text Nor
 | Feature | Technical Implementation & Description |
 |---|---|
 | 🔒 **100% Offline & Privacy-Preserving** | All text extraction, embedding generation, vector search, and LLM inference occur locally on CPU/RAM. Zero network telemetry or cloud API calls. |
+| 🌐 **Bilingual Interface & Query Matching** | One-click language toggle button (`🌐 English` / `🌐 فارسی`) switching between Persian (**RTL**) and English (**LTR**) layouts. Questions asked in English automatically receive English responses (`Analysis: ... Final Answer: ...`), and questions in Persian receive Persian responses (`تحلیل: ... پاسخ نهایی: ...`). |
 | 🇮🇷 **Persian Ligature & Unicode Normalizer** | Custom regex and dictionary-based pipeline (`PersianNormalizer`) correcting PyMuPDF extraction bugs, NFKC normalization, Arabic-to-Persian character standardization, ZWNJ space handling, and numeral unification. |
 | 🔍 **High-Precision Vector Retrieval** | FAISS vector store powered by HuggingFace multilingual MiniLM embeddings. Implements chunk deduplication to prevent redundant contexts from polluting the prompt window. |
 | 🤖 **Quantized Local LLM Inference** | High-speed CPU inference with **Qwen 2.5 3B Instruct** (Q4_K_M GGUF) via `llama-cpp-python`. Real-time token streaming with zero latency lag. |
-| 💡 **Chain-of-Thought (CoT) Grounded Prompts** | Deterministic generation (T=0.0) enforcing strict 2-stage answers (`تحلیل` followed by `پاسخ نهایی`) and strict zero-hallucination rules. |
-| 🖥️ **Native Persian RTL PySide6 Interface** | Sleek, dark-themed Qt6 graphical user interface with full right-to-left layout support and high-legibility Vazirmatn Persian typography. |
+| 💡 **Chain-of-Thought (CoT) Grounded Prompts** | Deterministic generation (T=0.0) enforcing strict 2-stage answers (`Analysis/Final Answer` in EN or `تحلیل/پاسخ نهایی` in FA) and strict zero-hallucination rules. |
+| 🖥️ **Native Dual-Language PySide6 Interface** | Sleek, dark-themed Qt6 graphical user interface with full right-to-left (RTL) and left-to-right (LTR) layout support and high-legibility Vazirmatn Persian typography. |
 | 🔄 **Non-Blocking Multi-Threaded Execution** | Background Qt worker threads (`QThread`) handle FAISS index building and LLM streaming to maintain complete UI responsiveness. |
 | 📚 **Multi-Document Auto-Synchronization** | Automatic document tracking via SHA/metadata hashing (`source_metadata.json`). Rebuilds vector indices only when PDF files are added, modified, or deleted. |
 | 💬 **Persistent Local Chat Sessions** | Saves conversation histories locally as structured JSON files in `/Chats`. Re-load past sessions, switch chats, or delete conversations on demand. |
@@ -73,7 +74,10 @@ Nahanjoo operates through two primary execution pipelines: **Document Ingestion 
 2. RAG QUERY RETRIEVAL & RESPONSE PIPELINE
 ==================================================================================================
 
-  User Persian Query
+  User Query (Persian or English)
+         │
+         ▼
+  [ Automatic Language Detector ] ──► Detects question language (English vs Persian)
          │
          ▼
   [ FAISS Retriever ] ──────────► Top-K Vector Similarity Search (k=5)
@@ -83,9 +87,9 @@ Nahanjoo operates through two primary execution pipelines: **Document Ingestion 
          │
          ▼
   [ CoT Prompt Engine ] ────────► System Instructions:
-         │                         - Strict Persian responses only
-         │                         - Enforce zero hallucination ("اطلاعاتی در اسناد یافت نشد.")
-         │                         - Format: تحلیل: [...]  پاسخ نهایی: [...]
+         │                         - Language-Matched Output (English/Persian CoT)
+         │                         - Enforce zero hallucination ("No information found" / "اطلاعاتی یافت نشد.")
+         │                         - Format: Analysis / Final Answer (EN) or تحلیل / پاسخ نهایی (FA)
          ▼
   [ Qwen 2.5 3B LLM ] ─────────► llama-cpp-python (Streaming, Temp=0.0, max_tokens=1024)
          │
