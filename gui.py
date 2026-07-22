@@ -68,6 +68,8 @@ TRANSLATIONS = {
         "sync_success_msg": "نمایه‌سازی و همگام‌سازی اسناد با موفقیت انجام شد.",
         "error_title": "خطا",
         "close_btn": "بستن",
+        "help_dialog_title": "راهنمای استفاده از نهانجو",
+        "about_dialog_title": "درباره نهانجو - Nahanjoo v1.0",
         "thinking_placeholder": "<i>نهانجو در حال جستجو در اسناد و پاسخ‌دهی است... لطفاً شکیبا باشید.</i>",
         "analyzing_placeholder": "<i>در حال تحلیل اسناد و تولید پاسخ...</i>"
     },
@@ -115,6 +117,8 @@ TRANSLATIONS = {
         "sync_success_msg": "Document indexing and synchronization completed successfully.",
         "error_title": "Error",
         "close_btn": "Close",
+        "help_dialog_title": "Nahanjoo Usage Guide",
+        "about_dialog_title": "About Nahanjoo v1.0",
         "thinking_placeholder": "<i>Nahanjoo is searching documents and generating an answer... Please wait.</i>",
         "analyzing_placeholder": "<i>Analyzing documents and generating response...</i>"
     }
