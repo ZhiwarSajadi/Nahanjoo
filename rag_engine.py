@@ -304,7 +304,7 @@ class RAGEngine:
             n_threads = max(1, threads // 2) if threads else 4
             n_threads_batch = threads if threads else 4
             
-            # We set n_ctx=5120 to support reasonable context windows while saving RAM/VRAM
+            # We set n_ctx=4096 to support reasonable context windows while saving RAM/VRAM
             # n_batch=512 evaluates prompt chunks quickly. n_gpu_layers=-1 uses hardware acceleration.
             # flash_attn=True significantly accelerates prompt evaluation.
             self.llm = Llama(
