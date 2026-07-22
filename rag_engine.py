@@ -319,20 +319,59 @@ class RAGEngine:
             )
             print("[+] LLM loaded successfully.")
 
-    def query(self, question: str, k: int = 5):
+    @staticmethod
+    def detect_language(text: str) -> str:
+        """Detects whether the given question text is English ('en') or Persian ('fa')."""
+        if not text:
+            return "fa"
+        
+        latin_chars = len(re.findall(r'[a-zA-Z]', text))
+        persian_chars = len(re.findall(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]', text))
+        
+        if latin_chars > 0 and persian_chars == 0:
+            return "en"
+        elif persian_chars > 0 and latin_chars == 0:
+            return "fa"
+        elif latin_chars > 0 and persian_chars > 0:
+            text_lower = text.lower().strip()
+            english_starters = ("what ", "how ", "where ", "who ", "why ", "which ", "when ", "is ", "are ", "can ", "could ", "does ", "did ", "do ")
+            if any(text_lower.startswith(starter) for starter in english_starters):
+                return "en"
+            if latin_chars > (persian_chars * 1.5):
+                return "en"
+            return "fa"
+            
+        return "fa"
+
+    def query(self, question: str, k: int = 5, lang: str = None):
         """Queries the vector store and runs LLM inference for RAG response (Streaming)."""
+        question_lang = self.detect_language(question)
+        if question_lang == "en":
+            target_lang = "en"
+        elif lang:
+            target_lang = lang
+        else:
+            target_lang = "fa"
+
         load_status = None
         if self.vector_store is None:
             load_status = self.load_or_build_vector_store()
             
         if self.vector_store is None:
-            # Provide a specific message based on why the vector store failed to load
-            if load_status == "no_documents":
-                err_text = "هیچ سند PDF در پوشه Documents یافت نشد. لطفاً ابتدا فایل‌های PDF اضافه کنید."
-            elif load_status == "no_text_extracted":
-                err_text = "متنی از اسناد PDF استخراج نشد. بررسی کنید فایل‌ها اسکن تصویری نباشند."
+            if target_lang == "en":
+                if load_status == "no_documents":
+                    err_text = "No PDF documents found in Documents directory. Please add PDF files first."
+                elif load_status == "no_text_extracted":
+                    err_text = "No text could be extracted from PDFs. Verify files are not scanned images."
+                else:
+                    err_text = "Document database is not ready. Please place PDF files in Documents directory."
             else:
-                err_text = "پایگاه داده اسناد آماده نیست. لطفاً ابتدا فایل‌های PDF را در پوشه Documents قرار دهید."
+                if load_status == "no_documents":
+                    err_text = "هیچ سند PDF در پوشه Documents یافت نشد. لطفاً ابتدا فایل‌های PDF اضافه کنید."
+                elif load_status == "no_text_extracted":
+                    err_text = "متنی از اسناد PDF استخراج نشد. بررسی کنید فایل‌ها اسکن تصویری نباشند."
+                else:
+                    err_text = "پایگاه داده اسناد آماده نیست. لطفاً ابتدا فایل‌های PDF را در پوشه Documents قرار دهید."
             yield {"type": "error", "text": err_text}
             return
 
@@ -364,7 +403,10 @@ class RAGEngine:
                 unique_docs.append(doc)
 
         for doc in unique_docs:
-            src = f"سند: {doc.metadata.get('source', 'نامشخص')} (صفحه {doc.metadata.get('page', 1)})"
+            if target_lang == "en":
+                src = f"Document: {doc.metadata.get('source', 'Unknown')} (Page {doc.metadata.get('page', 1)})"
+            else:
+                src = f"سند: {doc.metadata.get('source', 'نامشخص')} (صفحه {doc.metadata.get('page', 1)})"
             clean_content = re.sub(r'\s+', ' ', doc.page_content).strip()
             context_blocks.append(f"[{src}]: {clean_content}")
             sources.append({
@@ -387,23 +429,37 @@ class RAGEngine:
         # Deferred import
         from langchain_core.prompts import PromptTemplate
 
-        # Strict CoT prompt instructions for deterministic reasoning
-        system_prompt = (
-            "شما یک دستیار هوش مصنوعی استخراج اطلاعات از اسناد هستید.\n"
-            "قوانین اکید و غیرقابل تغییر:\n"
-            "۱. فقط و فقط بر اساس متن ارائه شده پاسخ دهید. اگر پاسخ در متن نیست، صراحتاً بنویسید: «اطلاعاتی در اسناد یافت نشد.» و هیچ چیزی از خودتان نسازید.\n"
-            "۲. حق ندارید هیچ شماره ماده یا تبصرهای را حدس بزنید. فقط شمارههایی را ذکر کنید که دقیقاً در متن به آنها اشاره شده است.\n"
-            "۳. استفاده از کلمات انگلیسی (مانند Maximum یا Minimum) کاملاً ممنوع است. تمام پاسخ باید به زبان فارسی روان باشد.\n"
-            "۴. حتماً بررسی کنید که آیا بین کلماتی مثل حداقل/حداکثر و کمتر/بیشتر ارتباطی در متن وجود دارد یا خیر.\n"
-            "ساختار پاسخ شما باید دقیقاً اینگونه باشد:\n"
-            "تحلیل: [بررسی قدم به قدم متن و تطبیق مفاهیم]\n"
-            "پاسخ نهایی: [جواب قطعی]"
-        )
+        if target_lang == "en":
+            system_prompt = (
+                "You are an AI document information extraction assistant.\n"
+                "Strict and unchangeable rules:\n"
+                "1. Answer ONLY based on the provided document text. If the answer is not in the text, explicitly state: \"No information found in documents.\" Do not hallucinate or make up any facts.\n"
+                "2. Do not guess any section numbers, clause numbers, or names. Only state details explicitly mentioned in the text.\n"
+                "3. The ENTIRE answer MUST be in clear, fluent English.\n"
+                "4. Carefully verify relationships, conditions, names, and requirements mentioned in the text.\n"
+                "Your response structure MUST follow this exact format:\n"
+                "Analysis: [Step-by-step evaluation of the document text and matching concepts]\n"
+                "Final Answer: [Definitive answer]"
+            )
+            user_prompt_template = PromptTemplate.from_template(
+                "Document Content:\n{context}\n\nUser Question: {question}\n\nPlease answer strictly following the required structure (Analysis: ... Final Answer: ...):"
+            )
+        else:
+            system_prompt = (
+                "شما یک دستیار هوش مصنوعی استخراج اطلاعات از اسناد هستید.\n"
+                "قوانین اکید و غیرقابل تغییر:\n"
+                "۱. فقط و فقط بر اساس متن ارائه شده پاسخ دهید. اگر پاسخ در متن نیست، صراحتاً بنویسید: «اطلاعاتی در اسناد یافت نشد.» و هیچ چیزی از خودتان نسازید.\n"
+                "۲. حق ندارید هیچ شماره ماده یا تبصره‌ای را حدس بزنید. فقط شماره‌هایی را ذکر کنید که دقیقاً در متن به آنها اشاره شده است.\n"
+                "۳. استفاده از کلمات انگلیسی (مانند Maximum یا Minimum) کاملاً ممنوع است. تمام پاسخ باید به زبان فارسی روان باشد.\n"
+                "۴. حتماً بررسی کنید که آیا بین کلماتی مثل حداقل/حداکثر و کمتر/بیشتر ارتباطی در متن وجود دارد یا خیر.\n"
+                "ساختار پاسخ شما باید دقیقاً اینگونه باشد:\n"
+                "تحلیل: [بررسی قدم به قدم متن و تطبیق مفاهیم]\n"
+                "پاسخ نهایی: [جواب قطعی]"
+            )
+            user_prompt_template = PromptTemplate.from_template(
+                "متن اسناد:\n{context}\n\nسوال کاربر: {question}\n\nاکنون دقیقاً طبق ساختار خواسته شده (تحلیل: ... پاسخ نهایی: ...) پاسخ بده:"
+            )
 
-        # User template wrapping prompt template
-        user_prompt_template = PromptTemplate.from_template(
-            "متن اسناد:\n{context}\n\nسوال کاربر: {question}\n\nاکنون دقیقاً طبق ساختار خواستهشده (تحلیل: ... پاسخ نهایی: ...) پاسخ بده:"
-        )
         user_content = user_prompt_template.format(context=context_text, question=question)
 
         messages = [
@@ -430,8 +486,10 @@ class RAGEngine:
                             "text": token
                         }
         except Exception as e:
+            err_prefix = "Error generating LLM response" if target_lang == "en" else "خطا در تولید پاسخ از مدل"
             yield {
                 "type": "error",
-                "text": f"خطا در تولید پاسخ از مدل: {str(e)}"
+                "text": f"{err_prefix}: {str(e)}"
             }
+
 

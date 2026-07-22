@@ -173,10 +173,11 @@ class QueryWorker(QThread):
     finished = Signal(str, list)  # Final answer, sources
     error_occurred = Signal(str)
 
-    def __init__(self, rag_engine: RAGEngine, question: str):
+    def __init__(self, rag_engine: RAGEngine, question: str, lang: str = "fa"):
         super().__init__()
         self.rag_engine = rag_engine
         self.question = question
+        self.lang = lang
         self._is_running = True
 
     def run(self):
@@ -186,7 +187,7 @@ class QueryWorker(QThread):
             sources = []
             full_answer = ""
             
-            for chunk in self.rag_engine.query(self.question):
+            for chunk in self.rag_engine.query(self.question, lang=self.lang):
                 if not self._is_running:
                     break
                     
@@ -199,7 +200,7 @@ class QueryWorker(QThread):
                     full_answer += token
                     self.new_token.emit(token)
                 elif chunk_type == "error":
-                    err_msg = chunk.get("text") or chunk.get("answer") or "خطایی رخ داد."
+                    err_msg = chunk.get("text") or chunk.get("answer") or ("Error occurred." if self.lang == "en" else "خطایی رخ داد.")
                     self.error_occurred.emit(err_msg)
                     return
             
@@ -208,7 +209,8 @@ class QueryWorker(QThread):
                 self.finished.emit(full_answer_fixed, sources)
                 
         except Exception as e:
-            self.error_occurred.emit(f"خطا در پردازش سوال: {str(e)}")
+            err_prefix = "Error processing question" if self.lang == "en" else "خطا در پردازش سوال"
+            self.error_occurred.emit(f"{err_prefix}: {str(e)}")
 
     def terminate_query(self):
         self._is_running = False
@@ -972,7 +974,7 @@ class NahanjooGUI(QMainWindow):
         self.active_text = ""
         self.active_sources = []
 
-        self.query_worker = QueryWorker(self.rag_engine, question_text)
+        self.query_worker = QueryWorker(self.rag_engine, question_text, lang=self.current_lang)
         self.query_worker.sources_ready.connect(self.on_sources_ready)
         self.query_worker.new_token.connect(self.on_new_token)
         self.query_worker.finished.connect(self.on_query_finished)
