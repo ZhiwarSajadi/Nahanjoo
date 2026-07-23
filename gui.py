@@ -275,7 +275,6 @@ class ChatBubble(QFrame):
     def update_text(self, text: str):
         formatted_text = text.replace("\n", "<br>")
         self.text_label.setText(formatted_text)
-        self.text_label.repaint()  # Force immediate repaint on the screen for real-time streaming
 
     def add_sources(self, sources):
         if not sources:
@@ -940,16 +939,8 @@ class NahanjooGUI(QMainWindow):
 
     def scroll_to_bottom(self):
         """Scrolls the chat area to the very bottom to show the latest messages."""
-        if self.scroll_area.widget() and self.scroll_area.widget().layout():
-            self.scroll_area.widget().layout().activate()
-        self.scroll_area.verticalScrollBar().setValue(
-            self.scroll_area.verticalScrollBar().maximum()
-        )
-        self.scroll_area.viewport().update()
-        
-        QTimer.singleShot(50, lambda: self.scroll_area.verticalScrollBar().setValue(
-            self.scroll_area.verticalScrollBar().maximum()
-        ))
+        vsb = self.scroll_area.verticalScrollBar()
+        vsb.setValue(vsb.maximum())
 
     def send_question(self):
         """Prepares and triggers the query background worker."""

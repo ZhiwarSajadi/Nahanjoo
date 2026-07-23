@@ -50,6 +50,18 @@ class PersianNormalizer:
         "واحدهای": "واحدهای"
     }
 
+    # Pre-compiled fast translation tables and regex patterns
+    _CHAR_TRANS = str.maketrans({
+        'ي': 'ی', 'ك': 'ک', '\u200c': ' ',
+        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+        '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+    })
+    
+    # Sort keys by length descending to replace multi-word ligatures first
+    _LIGATURE_REGEX = re.compile("|".join(re.escape(k) for k in sorted(LIGATURE_MAP.keys(), key=len, reverse=True)))
+    _AL_REGEX = re.compile(r'([سطقکعخ])ال')
+    _SPACE_REGEX = re.compile(r'[ \t]+')
+
     @classmethod
     def normalize(cls, text: str) -> str:
         if not text:
@@ -63,33 +75,17 @@ class PersianNormalizer:
         text = text.replace('\n', ' ')
         text = text.replace('___PARAGRAPH___', '\n\n')
 
-        # Standardize Arabic letters to Persian
-        for ar_char, fa_char in [('ي', 'ی'), ('ك', 'ک')]:
-            text = text.replace(ar_char, fa_char)
+        # Fast C-level character & digit standardization
+        text = text.translate(cls._CHAR_TRANS)
 
-        # Replace Zero-Width Non-Joiner with a standard space
-        text = text.replace('\u200c', ' ')
-
-        # Translate digits to standard ASCII English digits
-        fa_digits = "۰۱۲۳۴۵۶۷۸۹"
-        ar_digits = "٠١٢٣٤٥٦٧٨٩"
-        en_digits = "0123456789"
-        for fa_d, en_d in zip(fa_digits, en_digits):
-            text = text.replace(fa_d, en_d)
-        for ar_d, en_d in zip(ar_digits, en_digits):
-            text = text.replace(ar_d, en_d)
-
-        # Swap 'ال' with 'لا' using dictionary
-        for broken, corrected in cls.LIGATURE_MAP.items():
-            text = text.replace(broken, corrected)
+        # Single-pass regex ligature replacement
+        text = cls._LIGATURE_REGEX.sub(lambda m: cls.LIGATURE_MAP[m.group(0)], text)
 
         # Regex swap 'ال' to 'لا'
-        text = re.sub(r'([سطقکعخ])ال', r'\1لا', text)
+        text = cls._AL_REGEX.sub(r'\1لا', text)
 
-        # Safe space normalization: collapse multiple spaces/tabs to a single space.
-        # NOTE: We use [ \t]+ instead of \s+ so that paragraph line breaks (\n\n),
-        # which were explicitly preserved earlier in this function, are not collapsed.
-        text = re.sub(r'[ \t]+', ' ', text)
+        # Safe space normalization
+        text = cls._SPACE_REGEX.sub(' ', text)
 
         return text.strip()
 
@@ -299,18 +295,19 @@ class RAGEngine:
             from llama_cpp import Llama
 
             print(f"[*] Loading LLM: {self.llm_model_path}...")
-            # We set physical threads to avoid hyperthreading slowdowns
-            threads = os.cpu_count()
-            n_threads = max(1, threads // 2) if threads else 4
-            n_threads_batch = threads if threads else 4
+            # Optimize physical thread counts for LLM CPU execution
+            threads = os.cpu_count() or 4
+            n_threads = max(1, min(threads, 8))
+            n_threads_batch = max(1, min(threads, 8))
             
-            # We set n_ctx=4096 to support reasonable context windows while saving RAM/VRAM
-            # n_batch=512 evaluates prompt chunks quickly. n_gpu_layers=-1 uses hardware acceleration.
-            # flash_attn=True significantly accelerates prompt evaluation.
+            # n_ctx=4096 provides ample room for 2700+ token Persian RAG contexts + 1024 token response generation.
+            # n_batch=512 and n_ubatch=512 accelerate prompt processing (Time-To-First-Token).
+            # flash_attn=True accelerates self-attention computation.
             self.llm = Llama(
                 model_path=self.llm_model_path,
                 n_ctx=4096,
-                n_batch=1024,
+                n_batch=512,
+                n_ubatch=512,
                 n_gpu_layers=-1,
                 n_threads=n_threads,
                 n_threads_batch=n_threads_batch,
@@ -416,6 +413,9 @@ class RAGEngine:
             })
 
         context_text = "\n".join(context_blocks)
+        # Safety cap context to 5000 chars (~2500 tokens) to ensure prompt fits well within 4096 context window
+        if len(context_text) > 5000:
+            context_text = context_text[:5000] + "..."
 
         # Yield sources first so GUI can show them immediately
         yield {
